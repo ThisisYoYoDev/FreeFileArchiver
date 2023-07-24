@@ -1,0 +1,9 @@
+version: '3.8'
+
+services:
+  app:
+    restart: always
+    build: .
+    container_name: free_file_archiver
+    ports:
+      - "19876:19876"

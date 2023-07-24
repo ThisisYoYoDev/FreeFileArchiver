@@ -1,0 +1,7 @@
+{
+    "webhook": "YOUR DISCORD WEBHOOK URL HERE",
+    "port": 19876,
+    "max_file_size_in_mb": 25,
+    "max_total_size": "2GB",
+    "avatar_url": "https://cdn.discordapp.com/attachments/1132991969250000976/1132993530516750368/2721645.png"
+}
