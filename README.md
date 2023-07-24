@@ -25,12 +25,17 @@ In the file `config/config.json`, don't forget to put a Discord Webhook URL.
 | Avatar URL | Your avatar or keep the default one |
 
 
+### How to get your Discord Webhook URL
+https://github.com/ThisisYoYoDev/FreeFileArchiver/assets/71037962/752bed0f-f450-4d2e-82f1-e05d2590ce37
+
+
 ## How to Install It
 
 To use Free File Archiver, simply clone the repository and build the API with Docker:
 
 ```sh
 git clone https://github.com/ThisisYoYoDev/FreeFileArchiver.git && cd FreeFileArchiver/
+# Set the discord webhook in `config/config.json`
 docker-compose up --build -d
 ```
 
