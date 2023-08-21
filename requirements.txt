@@ -1,0 +1,6 @@
+requests
+
+# no system packages
+python-multipart
+fastapi
+uvicorn

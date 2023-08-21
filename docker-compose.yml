@@ -6,4 +6,4 @@ services:
     build: .
     container_name: free_file_archiver
     ports:
-      - "19876:19876"
+      - "8000:8000"

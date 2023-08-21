@@ -2,3 +2,4 @@
 
 !**/src/*.py
 !main.py
+!requirements.txt
