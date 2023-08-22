@@ -19,8 +19,6 @@ app.add_middleware(
 
 app.include_router(router)
 
-# set fastapi swagger information to: paths: /upload: post: summary: Uploads a file. consumes: - multipart/form-data parameters: - in: formData name: upfile type: file description: The file to upload.
-
 
 def custom_openapi():
     if app.openapi_schema:
