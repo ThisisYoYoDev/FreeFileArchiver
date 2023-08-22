@@ -5,6 +5,7 @@ from base64 import b85encode
 from time import time
 
 from multipart import MultipartParser
+from multipart.exceptions import MultipartParseError
 from fastapi import Request, APIRouter
 from fastapi.responses import StreamingResponse, JSONResponse
 
@@ -30,7 +31,7 @@ def download(file_id):
 @router.post("/upload")
 async def upload_test(request: Request):
     start = time()
-    filename = request.headers.get("file")
+    filename = request.headers.get("file", None)
 
     content_type = request.headers.get("Content-Type")
     if not content_type or "boundary=" not in content_type:
@@ -44,13 +45,26 @@ async def upload_test(request: Request):
         'on_part_begin': file.on_part_begin,
         'on_part_data': file.on_part_data,
         'on_part_end': file.on_part_end,
+        "on_header_value": file.on_header_value,
     }
 
     parser = MultipartParser(boundary, callbacks)
     async for chunk in request.stream():
-        parser.write(chunk)
+        try:
+            parser.write(chunk)
+        except MultipartParseError as e:
+            return JSONResponse(content=f"Invalid multipart data: {e}", status_code=400)
 
     file.collect_urls()
+
+    if not file.urls:
+        return JSONResponse(content="No file uploaded", status_code=400)
+
+    if filename is None:
+        filename = file.filename
+    else:
+        filename = "unknown.something"
+
     data = {
         "name": os.path.basename(filename),
         "id": file.urls,

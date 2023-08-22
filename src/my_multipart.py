@@ -10,6 +10,7 @@ class UploadFileByStream:
         self.executor = ThreadPoolExecutor()
         self.urls = []
         self.futures = []
+        self.filename = None
 
     def on_part_begin(self):
         self.buffer = b""
@@ -25,6 +26,10 @@ class UploadFileByStream:
     def on_part_end(self):
         if self.buffer:
             self.send_buffer()
+
+    def on_header_value(self, data, start, end):
+        if self.filename is None and b"filename=" in data[start:end]:
+            self.filename = data[start:end].decode("utf-8").split("filename=")[1].strip('"')
 
     def send_buffer(self):
         future = self.executor.submit(sendfile, self.buffer)
