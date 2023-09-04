@@ -57,7 +57,7 @@ def download(file_id):
     )
 
 @router.post("/upload")
-async def upload_test(request: Request):
+async def upload(request: Request):
     start = time()
     filename = request.headers.get("file", None)
 
