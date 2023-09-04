@@ -1,0 +1,20 @@
+{
+  "name": "ffa",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "vue": "^3.3.4"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^4.3.1",
+    "eslint": "^8.7.0",
+    "prettier": "^2.5.1",
+    "vite": "^4.4.9",
+    "vue-eslint-parser": "^8.0.0"
+  }
+}
