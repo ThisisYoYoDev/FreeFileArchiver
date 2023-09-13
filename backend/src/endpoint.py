@@ -9,7 +9,7 @@ from multipart.exceptions import MultipartParseError
 from fastapi import Request, APIRouter
 from fastapi.responses import StreamingResponse, JSONResponse
 
-from .constants import WEBHOOK
+from .constants import WEBHOOK, WEBHOOK_LIST
 from .my_multipart import UploadFileByStream
 from base64 import b85decode
 import requests
@@ -21,7 +21,14 @@ router = APIRouter()
 
 @router.get("/health")
 def health():
-    return {"status": "ok"}
+    message = {}
+    for webhook in WEBHOOK_LIST:
+        status = requests.get(webhook).status_code
+        if status != 200:
+            message[webhook] = status
+            WEBHOOK_LIST.remove(webhook)
+    print(f"Number of Active Webhooks: {len(WEBHOOK_LIST)}")
+    return message or {"status": "ok"}
 
 
 def iterfile(futures):
