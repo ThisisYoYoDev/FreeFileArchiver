@@ -34,7 +34,7 @@ class UploadFileByStream:
             self.send_buffer()
 
     def on_header_value(self, data, start, end):
-        if self.filename is None and b"filename=" in data[start:end]:
+        if self.last_header_field == "Content-Disposition" and b"filename=" in data[start:end]:
             self.filename = data[start:end].decode("utf-8").split("filename=")[1].strip('"')
         if self.last_header_field == "Content-Type":
             self.mimetype = data[start:end].decode("utf-8")
