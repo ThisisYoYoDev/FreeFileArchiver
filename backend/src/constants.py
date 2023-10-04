@@ -1,6 +1,6 @@
 from itertools import cycle
 
-CHUNK_SIZE = 1024 * 1024 * (25 - 1)  # 20MB
+CHUNK_SIZE = 1024 * 1024 * (25 - 1)  # 25MB - 1MB
 
 WEBHOOK_LIST = set([
     "https://discord.com/api/webhooks/1151595851530125374/7Sl0rVMIYtzT29sYCXUy0omsTQVw5ktgrOOtdguqe6JODyQoBZvOq-6-6Yr6ggJUMKLN",
