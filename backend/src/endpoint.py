@@ -14,6 +14,7 @@ from .my_multipart import UploadFileByStream
 from base64 import b85decode
 import requests
 from concurrent.futures import ThreadPoolExecutor
+import lz4.frame
 
 
 router = APIRouter()
@@ -47,7 +48,7 @@ def download(file_id):
 
     response = requests.get(f"https://cdn.discordapp.com/attachments/{file_id}/data")
     response.raise_for_status()
-    data = response.json()
+    data = json.loads(lz4.frame.decompress(response.content))
 
     executor = ThreadPoolExecutor()
     return StreamingResponse(
@@ -108,8 +109,10 @@ async def upload(request: Request):
         "size": file.total_bytes,
         "mimetype": file.mimetype or "application/octet-stream",
     }
+    compress_data = lz4.frame.compress(bytes(json.dumps(data), 'utf-8'))
+    # Add encryption here
     response = requests.post(next(WEBHOOK), files={
-        'file[0]': ('data', bytes(json.dumps(data), 'utf-8'))
+        'file[0]': ('data', compress_data)
     })
     response.raise_for_status()
     url = "/".join(response.json().get("attachments", [])[0]
