@@ -1,21 +1,19 @@
 import os
 import json
 import requests
-from base64 import b85encode
+from base64 import b85encode, b85decode
 from time import time
+from concurrent.futures import ThreadPoolExecutor
 
 from multipart import MultipartParser
 from multipart.exceptions import MultipartParseError
 from fastapi import Request, APIRouter
 from fastapi.responses import StreamingResponse, JSONResponse
+import lz4.frame
 
 from .constants import WEBHOOK, WEBHOOK_LIST
 from .my_multipart import UploadFileByStream
-from base64 import b85decode
-import requests
-from concurrent.futures import ThreadPoolExecutor
-import lz4.frame
-
+from .crypto import encrypt, decrypt
 
 router = APIRouter()
 
@@ -46,14 +44,16 @@ def download(file_id):
         print(e)
         return {"error": "Invalid file id."}
 
-    response = requests.get(f"https://cdn.discordapp.com/attachments/{file_id}/data")
+    response = requests.get(
+        f"https://cdn.discordapp.com/attachments/{file_id}/data")
     response.raise_for_status()
-    data = json.loads(lz4.frame.decompress(response.content))
+    data = json.loads(lz4.frame.decompress(decrypt(response.content)))
 
     executor = ThreadPoolExecutor()
     return StreamingResponse(
         iterfile({
-            i: executor.submit(requests.get, f"https://cdn.discordapp.com/attachments/{url}/rip")
+            i: executor.submit(
+                requests.get, f"https://cdn.discordapp.com/attachments/{url}/rip")
             for i, url in enumerate(data["id"])
         }),
         media_type=data["mimetype"],
@@ -110,9 +110,10 @@ async def upload(request: Request):
         "mimetype": file.mimetype or "application/octet-stream",
     }
     compress_data = lz4.frame.compress(bytes(json.dumps(data), 'utf-8'))
-    # Add encryption here
+    encrypt_data = encrypt(compress_data)
+
     response = requests.post(next(WEBHOOK), files={
-        'file[0]': ('data', compress_data)
+        'file[0]': ('data', encrypt_data)
     })
     response.raise_for_status()
     url = "/".join(response.json().get("attachments", [])[0]

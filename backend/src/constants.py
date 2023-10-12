@@ -52,3 +52,7 @@ WEBHOOK = cycle(WEBHOOK_LIST)
 MAX_RETRIES = 20
 
 WAIT_TIME_INITIAL = 0.1
+
+KEY = b'Z:!A' * 8 # Size should be 16, 24 or 32 bytes
+
+IV = b'fedcba9876543210'

@@ -1,3 +1,6 @@
 **/__pycache__
 **.pyc
-**/.history
+**/.history/
+
+**/test_files
+webhooks_generator.py
