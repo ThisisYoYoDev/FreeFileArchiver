@@ -4,6 +4,11 @@
     <input type="file" @change="handleFileUpload" />
     <button @click="uploadFile">Upload</button>
 
+    <div>
+      <label for="progress-bar">0%</label>
+      <progress id="progress-bar" value="0" max="100"></progress>
+    </div>
+
     <div v-if="uploadedFile">
       <h2>Uploaded File:</h2>
       <p>Name: {{ uploadedFile.name }}</p>
@@ -18,6 +23,8 @@
 </template>
 
 <script>
+import axios from 'axios';
+
 export default {
   data() {
     return {
@@ -39,13 +46,22 @@ export default {
       const formData = new FormData();
       formData.append('file', this.uploadedFile);
 
-      const response = await fetch(url, {
-        method: 'POST',
-        body: formData,
-        headers,
-      });
+      const config = {
+        onUploadProgress: function(progressEvent) {
+          const percentCompleted = Math.round((progressEvent.loaded / progressEvent.total)*100);
 
-      this.downloadLink = `http://127.0.0.1:8000/download/${(await response.json()).id}`;
+          const progressBar = document.getElementById("progress-bar");
+          progressBar.value = percentCompleted;
+
+          const label = document.querySelector("label[for=progress-bar]");
+          label.textContent = percentCompleted + "%";
+        },
+        headers,
+      }
+
+      const response = await axios.post(url, formData, config)
+
+      this.downloadLink = `http://127.0.0.1:8000/download/${response.data.id}`;
       await navigator.clipboard.writeText(this.downloadLink);
     },
 

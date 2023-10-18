@@ -9,6 +9,7 @@ from multipart import MultipartParser
 from multipart.exceptions import MultipartParseError
 from fastapi import Request, APIRouter
 from fastapi.responses import StreamingResponse, JSONResponse
+from fastapi.exceptions import HTTPException
 import lz4.frame
 
 from .constants import WEBHOOK, WEBHOOK_LIST
@@ -26,7 +27,6 @@ def health():
         if status != 200:
             message[webhook] = status
             WEBHOOK_LIST.remove(webhook)
-    print(f"Number of Active Webhooks: {len(WEBHOOK_LIST)}")
     return message or {"status": "ok"}
 
 
@@ -47,7 +47,10 @@ def download(file_id):
     response = requests.get(
         f"https://cdn.discordapp.com/attachments/{file_id}/data")
     response.raise_for_status()
-    data = json.loads(lz4.frame.decompress(decrypt(response.content)))
+    try:
+        data = json.loads(lz4.frame.decompress(decrypt(response.content)))
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail="Invalid file id.")
 
     executor = ThreadPoolExecutor()
     return StreamingResponse(
