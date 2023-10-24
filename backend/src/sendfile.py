@@ -11,7 +11,7 @@ def sendfile(buffer):
         try:
             response = requests.post(next(WEBHOOK), files={
                                      "file[0]": ("rip", buffer)})
-            if response.status_code == 429:  # Rate limit
+            if response.status_code == 429:  # Rate limit see: https://discord.com/developers/docs/topics/rate-limits
                 retry_after = response.json().get("retry_after", WAIT_TIME_INITIAL)
                 print(f"Rate limited. Retrying in {retry_after} seconds...")
                 sleep(retry_after)

@@ -1,8 +1,17 @@
 <template>
   <div class="home">
-    <h1>File Uploader</h1>
-    <input type="file" @change="handleFileUpload" />
-    <button @click="uploadFile">Upload</button>
+    <div class="title">
+      <h1>File Uploader</h1>
+      <div class="line"></div>
+    </div>
+
+
+    <div class="container">
+      <div class="upload">
+        <input type="file" @change="handleFileUpload" />
+        <button @click="uploadFile">Upload</button>
+      </div>
+    </div>
 
     <div>
       <label for="progress-bar">0%</label>
@@ -89,3 +98,46 @@ export default {
   },
 };
 </script>
+
+<!-- <style>
+.home {
+  overflow: hidden;
+}
+.home .title {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+}
+
+.home .line {
+  width: 100%;
+  height: 2px;
+  background-color: #444;
+  margin-top: 6px;
+}
+
+.home .container {
+  position: absolute;
+  width: 700px;
+  height: 400px;
+  border-radius: 30px;
+  border: 2px solid #fff;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.home .container .upload {
+  width: 400px;
+  height: 300px;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  border-radius: 5%;
+  border: 2px dotted #fff;
+}
+
+
+
+</style> -->
