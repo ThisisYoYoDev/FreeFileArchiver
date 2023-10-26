@@ -11,12 +11,17 @@ from fastapi import Request, APIRouter
 from fastapi.responses import StreamingResponse, JSONResponse
 from fastapi.exceptions import HTTPException
 import lz4.frame
+import asyncio
 
 from .constants import WEBHOOK, WEBHOOK_LIST
 from .my_multipart import UploadFileByStream
 from .crypto import encrypt, decrypt
 
 router = APIRouter()
+
+@router.get("/ping")
+def ping():
+    return {"status": "pong"}
 
 
 @router.get("/health")
@@ -26,7 +31,6 @@ def health():
         status = requests.get(webhook).status_code
         if status != 200:
             message[webhook] = status
-            WEBHOOK_LIST.remove(webhook)
     return message or {"status": "ok"}
 
 
@@ -68,6 +72,14 @@ def download(file_id):
     )
 
 
+async def upload_file_in_thread(request: Request, parser: MultipartParser):
+    async for chunk in request.stream():
+        try:
+            await asyncio.sleep(0)
+            parser.write(chunk)
+        except MultipartParseError as e:
+            return JSONResponse(content=f"Invalid multipart data: {e}", status_code=400)
+
 @router.post("/upload")
 async def upload(request: Request):
     start = time()
@@ -90,8 +102,12 @@ async def upload(request: Request):
     }
 
     parser = MultipartParser(boundary, callbacks)
+
+    # await asyncio.create_task(upload_file_in_thread(request, parser))
+
     async for chunk in request.stream():
         try:
+            await asyncio.sleep(0) # allow other tasks to run (but thereis something that blocks the main thread)
             parser.write(chunk)
         except MultipartParseError as e:
             return JSONResponse(content=f"Invalid multipart data: {e}", status_code=400)
