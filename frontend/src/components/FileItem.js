@@ -1,9 +1,8 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import {
   Box,
   Text,
   Button,
-  IconButton,
   HStack,
   Progress,
   VStack,
@@ -11,7 +10,8 @@ import {
 import { FiDownload, FiTrash } from "react-icons/fi";
 import { FaFilePdf, FaFileImage } from "react-icons/fa";
 
-const FileItem = ({ file, onDelete, onDownload }) => {
+const FileItem = ({ file, onDelete, onDownload, uploadProgress }) => {
+  const [progress, setProgress] = useState(0);
   const getFileIcon = (filename) => {
     const extension = filename.split(".").pop().toLowerCase();
 
@@ -20,10 +20,22 @@ const FileItem = ({ file, onDelete, onDownload }) => {
     } else if (["jpg", "jpeg", "png", "gif"].includes(extension)) {
       return <FaFileImage />;
     } else {
-      // Default icon for other file types
-      return null; // You can provide a default icon here
+      return null;
     }
   };
+
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (progress < uploadProgress) {
+        setProgress(progress + 1);
+      }
+    }, 10);
+
+    return () => {
+      clearInterval(interval);
+    };
+  }, [progress, uploadProgress]);
 
   return (
     <Box
@@ -32,7 +44,7 @@ const FileItem = ({ file, onDelete, onDownload }) => {
       borderRadius="lg"
       display="flex"
       flexDirection="column"
-      alignItems="center"
+      alignItems="center" 
       justifyContent="space-between"
       backgroundColor="rgba(255, 255, 255, 0.9)"
       overflow="hidden"
@@ -48,8 +60,8 @@ const FileItem = ({ file, onDelete, onDownload }) => {
         </HStack>
       </HStack>
       <VStack spacing={2} w="100%">
-        <Progress hasStripe value={60} size="xs" w="100%" />
-        <Text>60%</Text>
+        <Progress hasStripe value={progress} size="xs" w="100%" />
+        <Text>{progress}%</Text>
       </VStack>
     </Box>
   );

@@ -8,17 +8,17 @@ import {
   Text,
   Flex,
   Image,
-  Progress
+  Button
 } from "@chakra-ui/react";
-import { useController, useForm } from "react-hook-form";
 import FileItem from "./FileItem";
+import axios from "axios";
 
 export const FileUpload = ({ name, acceptedFileTypes, children, isRequired = false }) => {
   const inputRef = useRef();
   const [dragging, setDragging] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState([]);
-  const { handleSubmit, control } = useForm();
-  
+  const [uploadProgress, setUploadProgress] = useState([]);
+
   const handleDragOver = (e) => {
     e.preventDefault();
     setDragging(true);
@@ -46,12 +46,66 @@ export const FileUpload = ({ name, acceptedFileTypes, children, isRequired = fal
   const handleRemoveFile = (fileIndex) => {
     const updatedFiles = [...selectedFiles];
     updatedFiles.splice(fileIndex, 1);
+
+    const updatedProgress = [...uploadProgress];
+    updatedProgress.splice(fileIndex, 1);
+
     setSelectedFiles(updatedFiles);
+    setUploadProgress(updatedProgress);
   };
 
-  const handleDownloadFile = (fileIndex) => {
-    const file = selectedFiles[fileIndex];
-    // Implémentez ici votre logique de téléchargement de fichier spécifique.
+  const handleDownloadFile = async (id) => {
+    if (id !== null) {
+      const downloadUrl = `http://127.0.0.1:8000/download/${id}`;
+      await navigator.clipboard.writeText(downloadUrl);
+    }
+  };
+
+  const submitUpload = async () => {
+    const uploadPromises = selectedFiles.map(async (file, index) => {
+      if (uploadProgress[index]?.progress === 100) {
+        return;
+      }
+      const formData = new FormData();
+      formData.append("file", file);
+
+      console.log(`Uploading file: ${file.name}`);
+
+      const headers = {
+        "Content-Disposition": `attachment; filename="${file.name}"`,
+      };
+
+      const config = {
+        onUploadProgress: function (progressEvent) {
+          const percentCompleted = Math.round((progressEvent.loaded / progressEvent.total) * 100);
+          
+          setUploadProgress((prevProgress) => {
+            const updatedProgress = [...prevProgress];
+            const index = selectedFiles.indexOf(file);
+            updatedProgress[index] = { id: null, progress: percentCompleted };
+            return updatedProgress;
+          });
+        },
+        headers,
+      };
+
+      try {
+        const response = await axios.post("http://127.0.0.1:8000/upload", formData, config);
+        console.log(`File ${file.name} uploaded successfully. Response:`, response);
+
+        const id = response.data.id;
+        setUploadProgress((prevProgress) => {
+          const updatedProgress = [...prevProgress];
+          const index = selectedFiles.indexOf(file);
+          updatedProgress[index] = { id, progress: 100 };
+          return updatedProgress;
+        });
+      } catch (error) {
+        console.error(`Error uploading file ${file.name}:`, error);
+      }
+    });
+
+    await Promise.all(uploadPromises);
   };
 
   return (
@@ -78,21 +132,20 @@ export const FileUpload = ({ name, acceptedFileTypes, children, isRequired = fal
             name={name}
             ref={inputRef}
             multiple
-            {...useController({ name, control })}
             style={{ display: 'none' }}
           />
 
           <Stack spacing={4} align="center">
             <IconButton
               aria-label="Upload File"
-              icon={<Image src="https://www.flaticon.com/free-icons/drag-and-drop" />}
+              icon={<Image w={100} src="https://www.freeiconspng.com/uploads/document-icon-19.png" />}
               onClick={() => inputRef.current.click()}
               bg="transparent"
               _hover={{ bg: "transparent" }}
               height={500}
               width="100%"
             />
-            <Text>Drag and drop files here or</Text>
+            <Text>Drag and drop files here or Browse files</Text>
           </Stack>
         </Box>
         <Box w="30%">
@@ -102,18 +155,18 @@ export const FileUpload = ({ name, acceptedFileTypes, children, isRequired = fal
                 key={index}
                 file={file}
                 onDelete={() => handleRemoveFile(index)}
-                onDownload={() => handleDownloadFile(index)}
+                onDownload={() => handleDownloadFile(uploadProgress[index]?.id)}
+                uploadProgress={uploadProgress[index]?.progress}
               />
             ))}
           </Stack>
         </Box>
       </Flex>
+      <Flex justifyContent="center" p={5}>
+        <Button onClick={submitUpload}>Submit upload</Button>
+      </Flex>
     </FormControl>
   );
-};
-
-FileUpload.defaultProps = {
-  acceptedFileTypes: '',
 };
 
 export default FileUpload;
