@@ -7,10 +7,10 @@ import {
   Progress,
   VStack,
 } from "@chakra-ui/react";
-import { FiDownload, FiTrash } from "react-icons/fi";
+import { FiCrosshair, FiDownload, FiShare, FiTrash } from "react-icons/fi";
 import { FaFilePdf, FaFileImage } from "react-icons/fa";
 
-const FileItem = ({ file, onDelete, onDownload, uploadProgress }) => {
+const FileItem = ({ file, onDownload, onShare, onCancel, uploadProgress }) => {
   const [progress, setProgress] = useState(0);
   const getFileIcon = (filename) => {
     const extension = filename.split(".").pop().toLowerCase();
@@ -24,18 +24,9 @@ const FileItem = ({ file, onDelete, onDownload, uploadProgress }) => {
     }
   };
 
-
   useEffect(() => {
-    const interval = setInterval(() => {
-      if (progress < uploadProgress) {
-        setProgress(progress + 1);
-      }
-    }, 10);
-
-    return () => {
-      clearInterval(interval);
-    };
-  }, [progress, uploadProgress]);
+    setProgress(uploadProgress);
+  }, [uploadProgress]);
 
   return (
     <Box
@@ -56,7 +47,8 @@ const FileItem = ({ file, onDelete, onDownload, uploadProgress }) => {
         </Box>
         <HStack spacing={2}>
           <Button leftIcon={<FiDownload />} onClick={() => onDownload(file)} variant="ghost" size="sm" />
-          <Button leftIcon={<FiTrash />} onClick={() => onDelete(file)} variant="ghost" color="red" size="sm" />
+          <Button leftIcon={<FiShare />} onClick={() => onShare(file)} variant="ghost" size="sm" />
+          <Button leftIcon={<FiTrash />} onClick={() => onCancel(file)} variant="ghost" color="red" size="sm" />
         </HStack>
       </HStack>
       <VStack spacing={2} w="100%">
