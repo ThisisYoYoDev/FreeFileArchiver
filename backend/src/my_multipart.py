@@ -1,4 +1,5 @@
 from concurrent.futures import ThreadPoolExecutor
+import asyncio
 
 from .sendfile import sendfile
 from .constants import CHUNK_SIZE
@@ -49,10 +50,14 @@ class UploadFileByStream:
         self.buffer = b""
         self.bytes_received = 0
 
-    def collect_urls(self):
-        for future in self.futures:
+    async def collect_urls(self):
+        loop = asyncio.get_event_loop()
+        futures = self.futures.copy()
+        self.futures = []
+
+        for future in futures:
             try:
-                result = future.result()
+                result = await loop.run_in_executor(None, future.result)
                 self.urls.extend(result)
             except Exception as e:
                 print("Error while processing chunk:", e)

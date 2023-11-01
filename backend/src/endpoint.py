@@ -12,6 +12,7 @@ from fastapi.responses import StreamingResponse, JSONResponse
 from fastapi.exceptions import HTTPException
 import lz4.frame
 import asyncio
+import aiohttp
 
 from .constants import WEBHOOK, WEBHOOK_LIST
 from .my_multipart import UploadFileByStream
@@ -72,13 +73,17 @@ def download(file_id):
     )
 
 
-async def upload_file_in_thread(request: Request, parser: MultipartParser):
-    async for chunk in request.stream():
-        try:
-            await asyncio.sleep(0)
-            parser.write(chunk)
-        except MultipartParseError as e:
-            return JSONResponse(content=f"Invalid multipart data: {e}", status_code=400)
+async def upload_to_webhook(encrypt_data):
+    async with aiohttp.ClientSession() as session:
+        data = aiohttp.FormData()
+        data.add_field('file[0]', encrypt_data, filename='data')
+        async with session.post(next(WEBHOOK), data=data) as response:
+            response.raise_for_status()
+            json_data = await response.json()
+            url = "/".join(json_data.get("attachments", [])[0]
+                            ["url"].split("attachments/")[1].split("/")[:2])
+            return b85encode(url.encode("utf-8")).hex()
+
 
 @router.post("/upload")
 async def upload(request: Request):
@@ -103,16 +108,13 @@ async def upload(request: Request):
 
     parser = MultipartParser(boundary, callbacks)
 
-    # await asyncio.create_task(upload_file_in_thread(request, parser))
-
     async for chunk in request.stream():
         try:
-            await asyncio.sleep(0) # allow other tasks to run (but thereis something that blocks the main thread)
+            await asyncio.sleep(0)
             parser.write(chunk)
         except MultipartParseError as e:
             return JSONResponse(content=f"Invalid multipart data: {e}", status_code=400)
-
-    file.collect_urls()
+    await file.collect_urls()
 
     if not file.urls:
         return JSONResponse(content="No file uploaded", status_code=400)
@@ -131,11 +133,6 @@ async def upload(request: Request):
     compress_data = lz4.frame.compress(bytes(json.dumps(data), 'utf-8'))
     encrypt_data = encrypt(compress_data)
 
-    response = requests.post(next(WEBHOOK), files={
-        'file[0]': ('data', encrypt_data)
-    })
-    response.raise_for_status()
-    url = "/".join(response.json().get("attachments", [])[0]
-                   ["url"].split("attachments/")[1].split("/")[:2])
+    url_hex = await upload_to_webhook(encrypt_data)
     print(f"Uploaded {len(file.urls)} chunks in {time() - start} seconds")
-    return {"id": b85encode(url.encode("utf-8")).hex()}
+    return {"id": url_hex}
