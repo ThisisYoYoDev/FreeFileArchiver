@@ -41,36 +41,37 @@ def iterfile(futures):
         yield result.content
 
 
-@router.get("/download/{file_id}")
-def download(file_id):
+@router.get("/download/{file_id}") # Blocking on multiple downloads request
+async def download(file_id):
     try:
         file_id = b85decode(bytes.fromhex(file_id)).decode("utf-8")
     except Exception as e:
         print(e)
         return {"error": "Invalid file id."}
 
-    response = requests.get(
-        f"https://cdn.discordapp.com/attachments/{file_id}/data")
-    response.raise_for_status()
-    try:
-        data = json.loads(lz4.frame.decompress(decrypt(response.content)))
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail="Invalid file id.")
+    async with aiohttp.ClientSession() as session:
+        async with session.get(f"https://cdn.discordapp.com/attachments/{file_id}/data") as response:
+            response.raise_for_status()
 
-    executor = ThreadPoolExecutor()
-    return StreamingResponse(
-        iterfile({
-            i: executor.submit(
-                requests.get, f"https://cdn.discordapp.com/attachments/{url}/rip")
-            for i, url in enumerate(data["id"])
-        }),
-        media_type=data["mimetype"],
-        headers={
-            "Content-Disposition": f"filename={data['name']}",
-            "Content-Length": str(data["size"]),
-            "X-filename": data["name"],
-        }
-    )
+            try:
+                data = json.loads(lz4.frame.decompress(decrypt(await response.read())))
+            except ValueError as e:
+                raise HTTPException(status_code=400, detail="Invalid file id.")
+
+            executor = ThreadPoolExecutor()
+            return StreamingResponse(
+                iterfile({
+                    i: executor.submit(
+                        requests.get, f"https://cdn.discordapp.com/attachments/{url}/rip")
+                    for i, url in enumerate(data["id"])
+                }),
+                media_type=data["mimetype"],
+                headers={
+                    "Content-Disposition": f"filename={data['name']}",
+                    "Content-Length": str(data["size"]),
+                    "X-filename": data["name"],
+                }
+            )
 
 
 async def upload_to_webhook(encrypt_data):

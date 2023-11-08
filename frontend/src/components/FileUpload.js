@@ -62,7 +62,7 @@ export const FileUpload = ({ name, acceptedFileTypes, children, isRequired = fal
     if (request) {
       request.cancel("Upload canceled");
       toast({
-        title: `Upload canceled/removed`,
+        title: `File ${selectedFiles[fileIndex].name} removed!`,
         status: 'success',
         isClosable: true,
         position: 'top'
