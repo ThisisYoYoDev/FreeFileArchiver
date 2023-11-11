@@ -10,4 +10,4 @@ COPY . .
 
 RUN npm run build
 
-CMD ["serve", "-s", "build", "-l", "8001"]
+CMD ["serve", "-s", "build", "-p", "8001"]
