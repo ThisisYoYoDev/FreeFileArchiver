@@ -72,7 +72,7 @@ export const FileUpload = ({ name, acceptedFileTypes, children, isRequired = fal
 
   const handleDownloadFile = async (id) => {
     if (id !== null) {
-      const downloadUrl = `http://127.0.0.1:8000/download/${id}`;
+      const downloadUrl = `http://localhost:8000/download/${id}`;
       window.open(downloadUrl, "_blank");
     }
   };
@@ -80,7 +80,7 @@ export const FileUpload = ({ name, acceptedFileTypes, children, isRequired = fal
   const handleShareLink = async (id) => {
     if (navigator.share) {
       try {
-        await navigator.share({ url: `http://127.0.0.1:8000/download/${id}` });
+        await navigator.share({ url: `http://localhost:8000/download/${id}` });
       } catch (error) {
         toast({
           title: `Error sharing link`,
@@ -96,7 +96,7 @@ export const FileUpload = ({ name, acceptedFileTypes, children, isRequired = fal
         isClosable: true,
         position: 'top'
       })
-      await navigator.clipboard.writeText(`http://127.0.0.1:8000/download/${id}`);
+      await navigator.clipboard.writeText(`http://localhost:8000/download/${id}`);
     }
   };
 
@@ -132,7 +132,7 @@ export const FileUpload = ({ name, acceptedFileTypes, children, isRequired = fal
 
       try {
         const source = axios.CancelToken.source();
-        const request = await axios.post("http://127.0.0.1:8000/upload", formData, {
+        const request = await axios.post("http://localhost:8000/upload", formData, {
           ...config,
           cancelToken: source.token,
         });

@@ -1,9 +1,18 @@
 version: '3.8'
 
 services:
-  app:
+  backend:
     restart: always
     build: ./backend
-    container_name: free_file_archiver
+    container_name: free_file_archiver_backend
     ports:
       - "8000:8000"
+
+  frontend:
+    restart: always
+    build: ./frontend
+    container_name: free_file_archiver_frontend
+    ports:
+      - "8001:8001"
+    depends_on:
+      - backend

@@ -6,3 +6,4 @@ fastapi
 uvicorn
 lz4
 pycryptodome
+aiohttp
