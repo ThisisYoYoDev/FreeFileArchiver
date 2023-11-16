@@ -48,7 +48,7 @@ WEBHOOK_LIST = set([
 ])
 
 WEBHOOK = cycle(WEBHOOK_LIST)
-WEBHOOK_DICT = {webhook: {"x-ratelimit-remaining": None, "x-ratelimit-reset-after": None} for webhook in WEBHOOK_LIST}
+WEBHOOK_DICT = {webhook: {"x-ratelimit-remaining": 5, "x-ratelimit-reset-after": 1} for webhook in WEBHOOK_LIST}
 
 KEY = b'Z:!A' * 8  # La taille doit être de 16, 24 ou 32 octets
 IV = b'fedcba9876543210'

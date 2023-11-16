@@ -78,12 +78,17 @@ async def upload_to_webhook(encrypt_data):
     async with aiohttp.ClientSession() as session:
         data = aiohttp.FormData()
         data.add_field('file[0]', encrypt_data, filename='data')
-        async with session.post(next(WEBHOOK), data=data) as response:
-            response.raise_for_status()
-            json_data = await response.json()
-            url = "/".join(json_data.get("attachments", [])[0]
-                            ["url"].split("attachments/")[1].split("/")[:2])
-            return b85encode(url.encode("utf-8")).hex()
+        while True:
+            try:
+                async with session.post(next(WEBHOOK), data=data) as response:
+                    response.raise_for_status()
+                    json_data = await response.json()
+                    url = "/".join(json_data.get("attachments", [])[0]
+                                    ["url"].split("attachments/")[1].split("/")[:2])
+                    return b85encode(url.encode("utf-8")).hex()
+            except aiohttp.ClientError as e:
+                print(f"upload_to_webhook| Client error occurred: {e}")
+                continue
 
 
 @router.post("/upload")
