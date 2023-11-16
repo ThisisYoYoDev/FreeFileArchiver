@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   Box,
   FormControl,
@@ -21,6 +21,19 @@ export const FileUpload = ({ name, acceptedFileTypes, children, isRequired = fal
   const [uploadProgress, setUploadProgress] = useState([]);
   const requests = useRef([]);
   const toast = useToast()
+
+  useEffect(() => {
+    const storedFiles = JSON.parse(localStorage.getItem('uploadedFiles')) || [];
+    const storedProgress = JSON.parse(localStorage.getItem('uploadProgress')) || [];
+    
+    setSelectedFiles(storedFiles);
+    setUploadProgress(storedProgress);
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem('uploadedFiles', JSON.stringify(selectedFiles));
+    localStorage.setItem('uploadProgress', JSON.stringify(uploadProgress));
+  }, [selectedFiles, uploadProgress]);
 
   const handleDragOver = (e) => {
     e.preventDefault();
@@ -119,7 +132,7 @@ export const FileUpload = ({ name, acceptedFileTypes, children, isRequired = fal
 
       const config = {
         onUploadProgress: function (progressEvent) {
-          const percentCompleted = Math.round((progressEvent.loaded / progressEvent.total) * 100);
+          const percentCompleted = Math.round((progressEvent.loaded / progressEvent.total) * 99);
 
           setUploadProgress((prevProgress) => {
             const updatedProgress = [...prevProgress];
@@ -212,6 +225,7 @@ export const FileUpload = ({ name, acceptedFileTypes, children, isRequired = fal
               <FileItem
                 key={index}
                 file={file}
+                id={uploadProgress[index]?.id}
                 onDownload={() => handleDownloadFile(uploadProgress[index]?.id)}
                 onShare={() => handleShareLink(uploadProgress[index]?.id)}
                 onCancel={() => handleRemoveFile(index)}
