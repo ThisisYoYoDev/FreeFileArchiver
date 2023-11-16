@@ -25,6 +25,7 @@ def sendfile(buffer):
                 continue
 
             if response.status_code == 404:
+                print(f"sendfile| 404 Webhook {webhook} not found. Removing from list.")
                 WEBHOOK_DICT.pop(webhook)
                 continue
 
