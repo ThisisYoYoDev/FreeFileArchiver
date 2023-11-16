@@ -24,6 +24,10 @@ def sendfile(buffer):
                 sleep(float(response.json()["retry_after"]) + float(WEBHOOK_DICT[webhook]["x-ratelimit-reset-after"]))
                 continue
 
+            if response.status_code == 404:
+                WEBHOOK_DICT.pop(webhook)
+                continue
+
             response.raise_for_status()
         except requests.exceptions.HTTPError as e:
             print(f"sendfile| HTTP error occurred: {e}")
