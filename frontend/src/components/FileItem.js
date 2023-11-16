@@ -7,10 +7,10 @@ import {
   Progress,
   VStack,
 } from "@chakra-ui/react";
-import { FiCrosshair, FiDownload, FiShare, FiTrash } from "react-icons/fi";
+import { FiDownload, FiShare, FiTrash } from "react-icons/fi";
 import { FaFilePdf, FaFileImage } from "react-icons/fa";
 
-const FileItem = ({ file, onDownload, onShare, onCancel, uploadProgress }) => {
+const FileItem = ({ file, id, onDownload, onShare, onCancel, uploadProgress }) => {
   const [progress, setProgress] = useState(0);
   const getFileIcon = (filename) => {
     const extension = filename.split(".").pop().toLowerCase();
@@ -28,6 +28,18 @@ const FileItem = ({ file, onDownload, onShare, onCancel, uploadProgress }) => {
     setProgress(uploadProgress);
   }, [uploadProgress]);
 
+  const getColorScheme = () => {
+    if (progress === 100) {
+      return "green";
+    } else if (progress > 50) {
+      return "blue";
+    } else if (progress > 25) {
+      return "orange";
+    } else {
+      return "red";
+    }
+  };
+
   return (
     <Box
       p={4}
@@ -35,7 +47,7 @@ const FileItem = ({ file, onDownload, onShare, onCancel, uploadProgress }) => {
       borderRadius="lg"
       display="flex"
       flexDirection="column"
-      alignItems="center" 
+      alignItems="center"
       justifyContent="space-between"
       backgroundColor="rgba(255, 255, 255, 0.9)"
       overflow="hidden"
@@ -46,13 +58,25 @@ const FileItem = ({ file, onDownload, onShare, onCancel, uploadProgress }) => {
           <Text>{file.name}</Text>
         </Box>
         <HStack spacing={2}>
-          <Button leftIcon={<FiDownload />} onClick={() => onDownload(file)} variant="ghost" size="sm" />
-          <Button leftIcon={<FiShare />} onClick={() => onShare(file)} variant="ghost" size="sm" />
+          <Button
+            leftIcon={<FiDownload />}
+            onClick={() => onDownload(file)}
+            variant="ghost"
+            size="sm"
+            isDisabled={id === null || id === undefined}
+          />
+          <Button leftIcon={<FiShare />} onClick={() => onShare(file)} variant="ghost" size="sm" isDisabled={id === null || id === undefined} />
           <Button leftIcon={<FiTrash />} onClick={() => onCancel(file)} variant="ghost" color="red" size="sm" />
         </HStack>
       </HStack>
       <VStack spacing={2} w="100%">
-        <Progress hasStripe value={progress} size="xs" w="100%" />
+        <Progress
+          hasStripe
+          value={progress}
+          size="xs"
+          w="100%"
+          colorScheme={getColorScheme()}
+        />
         <Text>{progress}%</Text>
       </VStack>
     </Box>
