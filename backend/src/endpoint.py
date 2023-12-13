@@ -2,7 +2,6 @@ import os
 import json
 import requests
 from base64 import b85encode, b85decode
-from time import time
 from concurrent.futures import ThreadPoolExecutor
 
 from multipart import MultipartParser
@@ -38,10 +37,10 @@ def health():
 def iterfile(futures):
     for _, future in futures.items():
         result = future.result()
-        yield result.content
+        yield decrypt(result.content)
 
 
-@router.get("/download/{file_id}") # Blocking on multiple downloads request
+@router.get("/download/{file_id}") # Blocking on multiple downloads request (Not really a problem)
 async def download(file_id):
     try:
         file_id = b85decode(bytes.fromhex(file_id)).decode("utf-8")
@@ -93,7 +92,6 @@ async def upload_to_webhook(encrypt_data):
 
 @router.post("/upload")
 async def upload(request: Request):
-    start = time()
     filename = request.headers.get("file", None)
 
     content_type = request.headers.get("Content-Type")
@@ -140,5 +138,4 @@ async def upload(request: Request):
     encrypt_data = encrypt(compress_data)
 
     url_hex = await upload_to_webhook(encrypt_data)
-    print(f"Uploaded {len(file.urls)} chunks in {time() - start} seconds")
     return {"id": url_hex}

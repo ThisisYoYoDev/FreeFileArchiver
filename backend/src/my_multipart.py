@@ -3,6 +3,8 @@ import asyncio
 
 from .sendfile import sendfile
 from .constants import CHUNK_SIZE
+from .crypto import encrypt
+import time
 
 class UploadFileByStream:
     def __init__(self):
@@ -14,6 +16,7 @@ class UploadFileByStream:
         self.futures = []
         self.filename = None
         self.mimetype = None
+        self.start = time.time()
 
     def on_part_begin(self):
         self.buffer = b""
@@ -44,7 +47,7 @@ class UploadFileByStream:
         self.last_header_field = data[start:end].decode("utf-8")
 
     def send_buffer(self):
-        future = self.executor.submit(sendfile, self.buffer)
+        future = self.executor.submit(sendfile, encrypt(self.buffer))
         self.futures.append(future)
 
         self.buffer = b""
